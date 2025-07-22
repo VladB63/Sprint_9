@@ -1,35 +1,21 @@
+version: '3.8'
+
 services:
   selenoid:
-    image: aerokube/selenoid:latest-release
-    networks:
-      - selenoid-net
+    image: aerokube/selenoid:latest
     ports:
       - "4444:4444"
     volumes:
+      - "./etc/selenoid:/etc/selenoid"
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./config.json:/etc/selenoid/browsers.json:ro"
-
-  selenoid-ui:
-    image: aerokube/selenoid-ui:latest-release
-    networks:
-      - selenoid-net
-    ports:
-      - "8080:8080"
-    environment:
-      - SELENOID_URI=http://selenoid:4444
+      - "./browsers.json:/etc/selenoid/browsers.json:ro"
+    command: ["-conf", "/etc/selenoid/browsers.json", "-limit", "10"]
 
   tests:
     build: .
     depends_on:
       - selenoid
-    networks:
-      - selenoid-net
     environment:
-      - SELENOID_URL: http://selenoid:4444/wd/hub
+      SELENOID_URL: "http://selenoid:4444/wd/hub"
     volumes:
       - "./allure-results:/app/allure-results:z"
-    command: pytest tests
-
-networks:
-  selenoid-net:
-    driver: bridge
