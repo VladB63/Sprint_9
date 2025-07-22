@@ -1,0 +1,35 @@
+services:
+  selenoid:
+    image: aerokube/selenoid:latest-release
+    networks:
+      - selenoid-net
+    ports:
+      - "4445:4444"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./config.json:/etc/selenoid/browsers.json:ro"
+
+  selenoid-ui:
+    image: aerokube/selenoid-ui:latest-release
+    networks:
+      - selenoid-net
+    ports:
+      - "8080:8080"
+    environment:
+      - SELENOID_URI=http://selenoid:4444
+
+  tests:
+    build: .
+    depends_on:
+      - selenoid
+    networks:
+      - selenoid-net
+    environment:
+      - SELENOID_URL=http://selenoid:4444/wd/hub
+    volumes:
+      - .:/app
+    command: pytest tests
+
+networks:
+  selenoid-net:
+    driver: bridge
