@@ -1,1 +1,1 @@
-# Product-assistant
+# Продуктовый помощник
