@@ -6,9 +6,8 @@ services:
     ports:
       - "4444:4444"
     volumes:
-      - "./etc/selenoid:/etc/selenoid"
+      - "./selenoid:/etc/selenoid"
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./browsers.json:/etc/selenoid/browsers.json:ro"
     command: ["-conf", "/etc/selenoid/browsers.json", "-limit", "10"]
 
   tests:

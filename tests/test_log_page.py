@@ -19,6 +19,8 @@ class TestLogPage:
         assert current_url == UrlPage.MAIN_URL and exit_button.is_displayed()
 
 
+
+
     @allure.step('Проверка авторизации пользователя с не полными данными')
     @pytest.mark.parametrize(
         "email, password", [
