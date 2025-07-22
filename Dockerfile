@@ -1,25 +1,22 @@
-# Используем подходящий образ Python
-FROM python:3.9-slim
+FROM python:3.9
 
-# Устанавливаем зависимости для Chrome
-RUN apt-get update && apt-get install -y wget gnupg
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    unzip \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
 
-# Добавляем репозиторий Google Chrome и устанавливаем Chrome
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
-RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list'
-RUN apt-get update && apt-get install -y google-chrome-stable
+RUN mkdir -p /etc/apt/keyrings \
+    && curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /etc/apt/keyrings/google.gpg \
+    && echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
 
-# Устанавливаем Xvfb
-RUN apt-get install -y xvfb
-
-# Устанавливаем зависимости Python
-RUN pip install --upgrade pip
-COPY requirements.txt /app/requirements.txt
-RUN pip install -r /app/requirements.txt
-
-# Копируем проект в контейнер
-COPY . /app
 WORKDIR /app
+RUN mkdir -p /app/allure-results && chmod 777 /app/allure-results
+COPY . .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Настройте виртуальный дисплей и запускаем тесты
-ENTRYPOINT ["xvfb-run", "-a", "pytest", "tests"]
+CMD ["pytest", "tests/", "--alluredir=allure-results"]
